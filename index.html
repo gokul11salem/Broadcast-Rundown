@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rundown — Daily Broadcast Schedule Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS
+========================================================= */
+:root{
+  --bg:#12151A;
+  --panel:#1A1F27;
+  --panel-2:#212831;
+  --panel-3:#262E38;
+  --border:#2B323C;
+  --text:#EDEFF2;
+  --text-dim:#9AA4B2;
+  --text-faint:#616B78;
+  --accent:#E8402C;      /* on-air red */
+  --accent-soft:rgba(232,64,44,.14);
+  --accent-2:#3DDC84;    /* signal green */
+  --accent-2-soft:rgba(61,220,132,.14);
+  --accent-3:#F5B942;    /* amber */
+  --accent-3-soft:rgba(245,185,66,.14);
+  --font-display:'Barlow Condensed',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:8px;
+  --shadow:0 10px 30px -12px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:#fff;}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--panel);}
+::-webkit-scrollbar-thumb{background:var(--panel-3);border-radius:6px;}
+
+button{font-family:var(--font-body);cursor:pointer;}
+input,select,textarea{font-family:var(--font-body);}
+
+/* =========================================================
+   APP SHELL
+========================================================= */
+.app{display:flex;min-height:100vh;}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  width:230px;flex-shrink:0;
+  background:linear-gradient(180deg,#161A21,#12151A);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brandmark{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--border);
+}
+.brandmark .tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;
+  color:var(--accent);text-transform:uppercase;
+}
+.brandmark .tag .dot{
+  width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft);
+  animation:pulse 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce){ .brandmark .tag .dot{animation:none;} }
+@keyframes pulse{
+  0%,100%{opacity:1;} 50%{opacity:.35;}
+}
+.brandmark h1{
+  font-family:var(--font-display);font-weight:700;font-size:23px;
+  margin:8px 0 0;letter-spacing:.01em;line-height:1.05;
+}
+.brandmark p{margin:4px 0 0;font-size:11.5px;color:var(--text-faint);}
+
+nav.navlist{padding:14px 12px;flex:1;}
+.navlist button{
+  width:100%;display:flex;align-items:center;gap:10px;
+  background:transparent;border:none;color:var(--text-dim);
+  padding:11px 12px;border-radius:var(--radius);font-size:14px;font-weight:500;
+  margin-bottom:3px;text-align:left;transition:background .15s,color .15s;
+}
+.navlist button svg{width:17px;height:17px;flex-shrink:0;opacity:.8;}
+.navlist button:hover{background:var(--panel-2);color:var(--text);}
+.navlist button.active{background:var(--accent-soft);color:#fff;}
+.navlist button.active svg{opacity:1;color:var(--accent);}
+.navlist .navnum{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-faint);
+  padding:14px 12px 4px;letter-spacing:.12em;
+}
+
+.sidefoot{
+  padding:16px 20px;border-top:1px solid var(--border);
+  font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);
+  letter-spacing:.03em;
+}
+
+/* ---------- Main ---------- */
+main.content{flex:1;min-width:0;padding:30px 34px 60px;max-width:1180px;}
+.topline{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:26px;flex-wrap:wrap;gap:10px;
+}
+.topline h2{
+  font-family:var(--font-display);font-weight:700;font-size:30px;margin:0;
+  letter-spacing:.01em;
+}
+.topline .sub{color:var(--text-dim);font-size:13.5px;margin-top:4px;}
+.clock{
+  font-family:var(--font-mono);font-size:13px;color:var(--text-dim);
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  padding:8px 12px;
+}
+.clock b{color:var(--text);}
+
+.panel{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:24px 26px;margin-bottom:22px;box-shadow:var(--shadow);
+}
+.panel h3{
+  font-family:var(--font-display);font-weight:600;font-size:19px;margin:0 0 4px;
+  letter-spacing:.01em;
+}
+.panel .hint{color:var(--text-faint);font-size:12.5px;margin:0 0 18px;}
+
+.field{margin-bottom:16px;}
+.field label{
+  display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;
+}
+.field input[type=text],.field input[type=date],.field input[type=number]{
+  width:100%;background:var(--panel-2);border:1px solid var(--border);
+  color:var(--text);padding:10px 12px;border-radius:6px;font-size:14.5px;
+  transition:border-color .15s;
+}
+.field input:focus{border-color:var(--accent-2);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+.btn{
+  border-radius:6px;border:1px solid var(--border);background:var(--panel-2);
+  color:var(--text);padding:10px 16px;font-size:13.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:7px;transition:all .15s;
+}
+.btn:hover{background:var(--panel-3);}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-accent:hover{background:#d5391f;}
+.btn-green{background:var(--accent-2);border-color:var(--accent-2);color:#08331b;}
+.btn-green:hover{background:#33c476;}
+.btn-ghost{background:transparent;}
+.btn-sm{padding:6px 10px;font-size:12px;}
+.btn-icon{padding:7px 9px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+.savebar{
+  display:flex;align-items:center;gap:12px;margin-top:8px;
+}
+.savedflag{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--accent-2);
+  opacity:0;transition:opacity .3s;
+}
+.savedflag.show{opacity:1;}
+
+/* ---------- Day tabs (templates) ---------- */
+.daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+.daytabs button{
+  border:1px solid var(--border);background:var(--panel-2);color:var(--text-dim);
+  padding:8px 14px;border-radius:20px;font-size:12.5px;font-weight:600;
+  font-family:var(--font-mono);letter-spacing:.04em;
+}
+.daytabs button.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* ---------- Rundown table (editor) ---------- */
+.rundown-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+table.rundown{width:100%;border-collapse:collapse;}
+table.rundown thead th{
+  background:var(--panel-3);color:var(--text-dim);font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.09em;text-align:left;
+  padding:11px 12px;font-weight:700;border-bottom:1px solid var(--border);
+}
+table.rundown tbody tr{border-bottom:1px solid var(--border);}
+table.rundown tbody tr:last-child{border-bottom:none;}
+table.rundown tbody tr:hover{background:var(--panel-2);}
+table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
+.td-num{
+  font-family:var(--font-mono);color:var(--text-faint);font-size:12px;width:34px;
+}
+.td-time{
+  font-family:var(--font-mono);font-size:13px;color:var(--accent-2);white-space:nowrap;width:150px;
+}
+.td-time .arrow{color:var(--text-faint);margin:0 4px;}
+.td-title input{
+  width:100%;background:transparent;border:1px solid transparent;color:var(--text);
+  padding:7px 8px;border-radius:5px;font-size:14px;font-weight:500;
+}
+.td-title input:hover{background:var(--panel-2);}
+.td-title input:focus{background:var(--panel-2);border-color:var(--accent-2);}
+.td-dur{width:118px;}
+.td-dur .durwrap{display:flex;align-items:center;gap:4px;}
+.td-dur input{
+  width:56px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);
+  padding:6px 7px;border-radius:5px;font-family:var(--font-mono);font-size:13px;text-align:center;
+}
+.td-dur span{color:var(--text-faint);font-size:11px;}
+.td-actions{width:112px;text-align:right;white-space:nowrap;}
+.iconbtn{
+  width:27px;height:27px;border-radius:5px;border:1px solid var(--border);
+  background:var(--panel-2);color:var(--text-dim);display:inline-flex;
+  align-items:center;justify-content:center;font-size:13px;margin-left:3px;
+}
+.iconbtn:hover{background:var(--panel-3);color:var(--text);}
+.iconbtn.danger:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
+
+.addrow{
+  display:flex;gap:10px;padding:14px 12px;background:var(--panel-2);
+  align-items:flex-end;flex-wrap:wrap;
+}
+.addrow .field{margin:0;flex:1;min-width:180px;}
+.addrow .fdur{flex:0 0 110px;min-width:110px;}
+.quickdur{display:flex;gap:5px;margin-top:6px;}
+.quickdur button{
+  font-family:var(--font-mono);font-size:11px;padding:4px 8px;border-radius:4px;
+  border:1px solid var(--border);background:var(--panel);color:var(--text-dim);
+}
+.quickdur button:hover{border-color:var(--accent-2);color:var(--accent-2);}
+
+/* ---------- Duration tracker ---------- */
+.tracker{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+.tracker .bar{
+  flex:1;min-width:220px;height:8px;background:var(--panel-2);border-radius:5px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.tracker .bar i{display:block;height:100%;background:var(--accent-2);transition:width .25s;}
+.tracker .bar i.over{background:var(--accent-3);}
+.tracker .stat{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);white-space:nowrap;}
+.tracker .stat b{color:var(--text);}
+.pill{
+  font-family:var(--font-mono);font-size:11px;padding:4px 9px;border-radius:20px;
+  background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);
+}
+.pill.ok{background:var(--accent-2-soft);border-color:var(--accent-2);color:var(--accent-2);}
+.pill.warn{background:var(--accent-3-soft);border-color:var(--accent-3);color:var(--accent-3);}
+
+/* ---------- Schedule date controls ---------- */
+.datebar{
+  display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px;
+}
+.datebar .field{margin:0;min-width:190px;}
+.datebadge{
+  font-family:var(--font-mono);font-size:12px;color:var(--text-dim);
+  background:var(--panel-2);border:1px solid var(--border);border-radius:6px;
+  padding:9px 13px;display:flex;align-items:center;gap:8px;
+}
+.datebadge b{color:var(--accent-2);}
+.sourcetag{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;
+  padding:5px 10px;border-radius:20px;text-transform:uppercase;
+}
+.sourcetag.template{background:var(--panel-2);color:var(--text-dim);border:1px solid var(--border);}
+.sourcetag.custom{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
+
+/* =========================================================
+   PRINT SHEET (built off-screen, shown only in @media print)
+========================================================= */
+#printSheet{display:none;}
+
+@media print{
+  @page{ size:A4; margin:14mm 14mm; }
+  html,body{background:#fff !important;}
+  body *{visibility:hidden;}
+  #printSheet, #printSheet *{visibility:visible;}
+  #printSheet{
+    display:block;position:absolute;top:0;left:0;width:100%;
+    color:#111;font-family:var(--font-body);background:#fff;
+  }
+  .app{display:none;}
+
+  .ps-header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:14px;
+  }
+  .ps-channel{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.01em;}
+  .ps-sub{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#333;margin-top:2px;}
+  .ps-meta{text-align:right;font-family:var(--font-mono);font-size:12px;color:#222;}
+  .ps-meta .day{font-family:var(--font-display);font-weight:700;font-size:20px;color:#000;}
+
+  table.ps-table{width:100%;border-collapse:collapse;margin-top:4px;}
+  table.ps-table thead th{
+    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    border-bottom:2px solid #111;padding:6px 8px;color:#111;
+  }
+  table.ps-table td{
+    padding:6px 8px;font-size:12.5px;border-bottom:1px solid #ccc;vertical-align:top;
+  }
+  table.ps-table td.ps-time{font-family:var(--font-mono);white-space:nowrap;font-weight:600;width:150px;}
+  table.ps-table td.ps-num{font-family:var(--font-mono);color:#666;width:28px;}
+  table.ps-table td.ps-dur{font-family:var(--font-mono);color:#444;width:70px;white-space:nowrap;}
+  table.ps-table tr{break-inside:avoid;}
+
+  .ps-footer{
+    display:flex;justify-content:space-between;margin-top:46px;page-break-inside:avoid;
+  }
+  .ps-sig{width:44%;text-align:center;}
+  .ps-sig .line{border-top:1px solid #111;margin-bottom:6px;padding-top:8px;}
+  .ps-sig .name{font-weight:700;font-size:13px;}
+  .ps-sig .role{font-size:10.5px;color:#444;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+  .ps-genfoot{margin-top:20px;font-size:9.5px;color:#999;font-family:var(--font-mono);text-align:center;}
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media(max-width:860px){
+  .app{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;}
+  .brandmark{border-bottom:none;border-right:1px solid var(--border);flex-shrink:0;}
+  nav.navlist{display:flex;flex:none;padding:10px;}
+  .navlist .navnum{display:none;}
+  .navlist button{white-space:nowrap;margin-bottom:0;}
+  .sidefoot{display:none;}
+  main.content{padding:22px 16px 50px;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brandmark">
+      <span class="tag"><span class="dot"></span>ON&nbsp;AIR&nbsp;CONTROL</span>
+      <h1 id="brandChannelName">RUNDOWN</h1>
+      <p>Broadcast Schedule Manager</p>
+    </div>
+    <nav class="navlist">
+      <div class="navnum">01 — SETUP</div>
+      <button data-view="settings" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Station Settings
+      </button>
+      <button data-view="templates">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Weekly Templates
+      </button>
+      <div class="navnum">02 — PRODUCTION</div>
+      <button data-view="schedule">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Daily Schedule
+      </button>
+    </nav>
+    <div class="sidefoot">RUNDOWN v1.0<br>Local-storage build</div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="content">
+
+    <!-- ---------------- SETTINGS VIEW ---------------- -->
+    <section class="view" id="view-settings">
+      <div class="topline">
+        <div>
+          <h2>Station Settings</h2>
+          <div class="sub">Channel identity and sign-off authorities used across every printed run order.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Channel Identity</h3>
+        <p class="hint">Appears as the masthead on the dashboard and the printed schedule header.</p>
+        <div class="field">
+          <label for="inpChannel">Channel Name</label>
+          <input type="text" id="inpChannel" placeholder="e.g. METRO TV NETWORK">
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Signatories</h3>
+        <p class="hint">These names populate the two signature blocks at the bottom of every printed run order.</p>
+        <div class="grid2">
+          <div class="field">
+            <label for="inpMD">Managing Director — Name</label>
+            <input type="text" id="inpMD" placeholder="e.g. Robert Hayes">
+          </div>
+          <div class="field">
+            <label for="inpHead">Broadcasting / Programming Head — Name</label>
+            <input type="text" id="inpHead" placeholder="e.g. Alicia Moreno">
+          </div>
+        </div>
+        <div class="savebar">
+          <button class="btn btn-green" id="btnSaveSettings">Save Settings</button>
+          <span class="savedflag" id="flagSettings">✓ Saved</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- TEMPLATES VIEW ---------------- -->
+    <section class="view" id="view-templates" style="display:none;">
+      <div class="topline">
+        <div>
+          <h2>Weekly Templates</h2>
+          <div class="sub">Set a default run order for each weekday. New daily schedules load from these automatically.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="daytabs" id="templateDayTabs"></div>
+
+        <div class="tracker">
+          <div class="bar"><i id="tplBarFill"></i></div>
+          <span class="stat" id="tplStat">0h 00m / 24h</span>
+          <span class="pill" id="tplPill">—</span>
+        </div>
+
+        <div class="rundown-wrap">
+          <table class="rundown">
+            <thead>
+              <tr>
+                <th class="td-num">#</th>
+                <th class="td-time">Time</th>
+                <th>Program</th>
+                <th class="td-dur">Duration</th>
+                <th class="td-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tplTableBody"></tbody>
+          </table>
+          <div class="addrow">
+            <div class="field">
+              <label>Program Title</label>
+              <input type="text" id="tplNewTitle" placeholder="e.g. Morning Bulletin">
+            </div>
+            <div class="field fdur">
+              <label>Minutes</label>
+              <input type="number" id="tplNewDur" value="30" min="1" max="1440">
+              <div class="quickdur">
+                <button type="button" data-dur="15">15</button>
+                <button type="button" data-dur="30">30</button>
+                <button type="button" data-dur="60">60</button>
+                <button type="button" data-dur="90">90</button>
+              </div>
+            </div>
+            <button class="btn btn-accent" id="tplAddBtn">+ Add Program</button>
+          </div>
+        </div>
+
+        <div class="savebar" style="margin-top:16px;">
+          <button class="btn btn-green" id="btnSaveTemplate">Save Template</button>
+          <button class="btn btn-ghost" id="btnClearTemplate">Clear Day</button>
+          <span class="savedflag" id="flagTemplate">✓ Template saved</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------- SCHEDULE VIEW ---------------- -->
+    <section class="view" id="view-schedule" style="display:none;">
+      <div class="topline">
+        <div>
+          <h2>Daily Schedule</h2>
+          <div class="sub">Plan and edit the exact run order for a specific broadcast date — up to 30 days ahead.</div>
+        </div>
+        <div class="clock" id="liveClock">--:--:--</div>
+      </div>
+
+      <div class="panel">
+        <div class="datebar">
+          <div class="field">
+            <label for="inpDate">Broadcast Date</label>
+            <input type="date" id="inpDate">
+          </div>
+          <div class="datebadge">Day: <b id="lblDayName">—</b></div>
+          <span class="sourcetag template" id="tagSource">TEMPLATE</span>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" id="btnResetTemplate">↺ Reset to Template</button>
+        </div>
+
+        <div class="tracker">
+          <div class="bar"><i id="schBarFill"></i></div>
+          <span class="stat" id="schStat">0h 00m / 24h</span>
+          <span class="pill" id="schPill">—</span>
+        </div>
+
+        <div class="rundown-wrap">
+          <table class="rundown">
+            <thead>
+              <tr>
+                <th class="td-num">#</th>
+                <th class="td-time">Time</th>
+                <th>Program</th>
+                <th class="td-dur">Duration</th>
+                <th class="td-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="schTableBody"></tbody>
+          </table>
+          <div class="addrow">
+            <div class="field">
+              <label>Program Title</label>
+              <input type="text" id="schNewTitle" placeholder="e.g. Evening News">
+            </div>
+            <div class="field fdur">
+              <label>Minutes</label>
+              <input type="number" id="schNewDur" value="30" min="1" max="1440">
+              <div class="quickdur">
+                <button type="button" data-dur="15">15</button>
+                <button type="button" data-dur="30">30</button>
+                <button type="button" data-dur="60">60</button>
+                <button type="button" data-dur="90">90</button>
+              </div>
+            </div>
+            <button class="btn btn-accent" id="schAddBtn">+ Add Program</button>
+          </div>
+        </div>
+
+        <div class="savebar" style="margin-top:16px;">
+          <button class="btn btn-green" id="btnSaveSchedule">Save Schedule</button>
+          <button class="btn btn-accent" id="btnPrint">🖶 Print Run Order</button>
+          <span class="savedflag" id="flagSchedule">✓ Schedule saved</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ PRINT SHEET (populated by JS, only visible via @media print) ============ -->
+<div id="printSheet">
+  <div class="ps-header">
+    <div>
+      <div class="ps-channel" id="psChannel">CHANNEL NAME</div>
+      <div class="ps-sub">Daily Broadcast Run Order (12:00 AM – 11:59 PM)</div>
+    </div>
+    <div class="ps-meta">
+      <div class="day" id="psDay">Monday</div>
+      <div id="psDate">01 January 2026</div>
+    </div>
+  </div>
+  <table class="ps-table">
+    <thead>
+      <tr>
+        <th class="ps-num">#</th>
+        <th style="width:150px;">Time (Start – End)</th>
+        <th>Program Title</th>
+        <th class="ps-dur">Duration</th>
+      </tr>
+    </thead>
+    <tbody id="psBody"></tbody>
+  </table>
+  <div class="ps-footer">
+    <div class="ps-sig">
+      <div class="line"></div>
+      <div class="name" id="psMD">—</div>
+      <div class="role">Managing Director</div>
+    </div>
+    <div class="ps-sig">
+      <div class="line"></div>
+      <div class="name" id="psHead">—</div>
+      <div class="role">Broadcasting / Programming Head</div>
+    </div>
+  </div>
+  <div class="ps-genfoot" id="psGenFoot"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   CONSTANTS
+========================================================= */
+var DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var JS_DAY_TO_NAME = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var LS_SETTINGS = "brs_settings_v1";
+var LS_TEMPLATES = "brs_templates_v1";
+var LS_SCHEDULES = "brs_schedules_v1";
+
+/* =========================================================
+   STORAGE HELPERS
+========================================================= */
+function loadJSON(key, fallback){
+  try{
+    var raw = localStorage.getItem(key);
+    if(!raw) return fallback;
+    return JSON.parse(raw);
+  }catch(e){ return fallback; }
+}
+function saveJSON(key, val){
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+/* =========================================================
+   STATE
+========================================================= */
+var settings = loadJSON(LS_SETTINGS, {
+  channel: "METRO TV NETWORK",
+  md: "Robert Hayes",
+  head: "Alicia Moreno"
+});
+
+var templates = loadJSON(LS_TEMPLATES, (function(){
+  var t = {};
+  DAYS.forEach(function(d){ t[d] = []; });
+  return t;
+})());
+
+var schedules = loadJSON(LS_SCHEDULES, {}); // { "YYYY-MM-DD": { programs:[...], source:"template"|"custom" } }
+
+var uidCounter = 1;
+function nextId(){ return "p" + (uidCounter++) + "_" + Date.now().toString(36); }
+
+var activeTemplateDay = DAYS[0];
+var activeDate = todayISO();
+var currentSchedulePrograms = [];   // working copy for the selected date
+var currentScheduleSource = "template";
+
+/* =========================================================
+   TIME HELPERS
+========================================================= */
+function todayISO(){
+  var d = new Date();
+  return isoFromDate(d);
+}
+function isoFromDate(d){
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,"0");
+  var day = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+function maxDateISO(){
+  var d = new Date();
+  d.setDate(d.getDate()+30);
+  return isoFromDate(d);
+}
+function minutesToClock(mins){
+  mins = ((mins % 1440) + 1440) % 1440;
+  var h = Math.floor(mins/60);
+  var m = mins % 60;
+  var ampm = h >= 12 ? "PM" : "AM";
+  var h12 = h % 12;
+  if(h12 === 0) h12 = 12;
+  return String(h12).padStart(2,"0") + ":" + String(m).padStart(2,"0") + " " + ampm;
+}
+function durationLabel(mins){
+  var h = Math.floor(mins/60);
+  var m = mins % 60;
+  if(h && m) return h+"h "+m+"m";
+  if(h) return h+"h";
+  return m+"m";
+}
+function computeTimes(programs){
+  // returns array of {..program, start, end} minutes-from-midnight, cumulative
+  var cursor = 0;
+  return programs.map(function(p){
+    var start = cursor;
+    var end = cursor + Number(p.duration || 0);
+    cursor = end;
+    return Object.assign({}, p, { start: start, end: end });
+  });
+}
+function totalMinutes(programs){
+  return programs.reduce(function(sum,p){ return sum + Number(p.duration||0); }, 0);
+}
+function weekdayNameFromISO(iso){
+  var parts = iso.split("-").map(Number);
+  var d = new Date(parts[0], parts[1]-1, parts[2]);
+  return JS_DAY_TO_NAME[d.getDay()];
+}
+function formatLongDate(iso){
+  var parts = iso.split("-").map(Number);
+  var d = new Date(parts[0], parts[1]-1, parts[2]);
+  var months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+var navButtons = document.querySelectorAll(".navlist button[data-view]");
+var views = {
+  settings: document.getElementById("view-settings"),
+  templates: document.getElementById("view-templates"),
+  schedule: document.getElementById("view-schedule")
+};
+navButtons.forEach(function(btn){
+  btn.addEventListener("click", function(){
+    navButtons.forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    Object.keys(views).forEach(function(k){ views[k].style.display = (k===btn.dataset.view) ? "" : "none"; });
+  });
+});
+
+/* =========================================================
+   SETTINGS VIEW
+========================================================= */
+var inpChannel = document.getElementById("inpChannel");
+var inpMD = document.getElementById("inpMD");
+var inpHead = document.getElementById("inpHead");
+var brandChannelName = document.getElementById("brandChannelName");
+
+function renderSettingsForm(){
+  inpChannel.value = settings.channel;
+  inpMD.value = settings.md;
+  inpHead.value = settings.head;
+  brandChannelName.textContent = settings.channel || "RUNDOWN";
+}
+document.getElementById("btnSaveSettings").addEventListener("click", function(){
+  settings.channel = inpChannel.value.trim() || "UNTITLED CHANNEL";
+  settings.md = inpMD.value.trim();
+  settings.head = inpHead.value.trim();
+  saveJSON(LS_SETTINGS, settings);
+  brandChannelName.textContent = settings.channel;
+  flashFlag("flagSettings");
+});
+function flashFlag(id){
+  var el = document.getElementById(id);
+  el.classList.add("show");
+  setTimeout(function(){ el.classList.remove("show"); }, 1800);
+}
+
+/* =========================================================
+   GENERIC RUNDOWN TABLE RENDERER
+   Renders a program list into a tbody with editable title/duration
+   and reorder/delete controls. onChange is called after any mutation.
+========================================================= */
+function renderRundownTable(tbody, programs, onChange){
+  tbody.innerHTML = "";
+  var withTimes = computeTimes(programs);
+  withTimes.forEach(function(p, idx){
+    var tr = document.createElement("tr");
+
+    var tdNum = document.createElement("td");
+    tdNum.className = "td-num";
+    tdNum.textContent = idx+1;
+
+    var tdTime = document.createElement("td");
+    tdTime.className = "td-time";
+    tdTime.innerHTML = minutesToClock(p.start) + '<span class="arrow">→</span>' + minutesToClock(p.end);
+
+    var tdTitle = document.createElement("td");
+    tdTitle.className = "td-title";
+    var titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.value = p.title;
+    titleInput.placeholder = "Untitled program";
+    titleInput.addEventListener("input", function(){
+      programs[idx].title = titleInput.value;
+      onChange(false); // don't re-render on every keystroke, just recompute totals
+    });
+    tdTitle.appendChild(titleInput);
+
+    var tdDur = document.createElement("td");
+    tdDur.className = "td-dur";
+    var durwrap = document.createElement("div");
+    durwrap.className = "durwrap";
+    var durInput = document.createElement("input");
+    durInput.type = "number";
+    durInput.min = "1";
+    durInput.max = "1440";
+    durInput.value = p.duration;
+    durInput.addEventListener("change", function(){
+      var v = parseInt(durInput.value,10);
+      if(isNaN(v) || v < 1) v = 1;
+      programs[idx].duration = v;
+      onChange(true);
+    });
+    var durSpan = document.createElement("span");
+    durSpan.textContent = "min";
+    durwrap.appendChild(durInput);
+    durwrap.appendChild(durSpan);
+    tdDur.appendChild(durwrap);
+
+    var tdActions = document.createElement("td");
+    tdActions.className = "td-actions";
+
+    var upBtn = document.createElement("button");
+    upBtn.className = "iconbtn"; upBtn.title = "Move up"; upBtn.innerHTML = "&uarr;";
+    upBtn.disabled = idx === 0;
+    upBtn.addEventListener("click", function(){
+      if(idx===0) return;
+      var tmp = programs[idx-1]; programs[idx-1] = programs[idx]; programs[idx] = tmp;
+      onChange(true);
+    });
+
+    var downBtn = document.createElement("button");
+    downBtn.className = "iconbtn"; downBtn.title = "Move down"; downBtn.innerHTML = "&darr;";
+    downBtn.disabled = idx === programs.length-1;
+    downBtn.addEventListener("click", function(){
+      if(idx===programs.length-1) return;
+      var tmp = programs[idx+1]; programs[idx+1] = programs[idx]; programs[idx] = tmp;
+      onChange(true);
+    });
+
+    var delBtn = document.createElement("button");
+    delBtn.className = "iconbtn danger"; delBtn.title = "Remove"; delBtn.innerHTML = "&times;";
+    delBtn.addEventListener("click", function(){
+      programs.splice(idx,1);
+      onChange(true);
+    });
+
+    tdActions.appendChild(upBtn);
+    tdActions.appendChild(downBtn);
+    tdActions.appendChild(delBtn);
+
+    tr.appendChild(tdNum);
+    tr.appendChild(tdTime);
+    tr.appendChild(tdTitle);
+    tr.appendChild(tdDur);
+    tr.appendChild(tdActions);
+    tbody.appendChild(tr);
+  });
+
+  if(programs.length === 0){
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    td.colSpan = 5;
+    td.style.padding = "24px";
+    td.style.textAlign = "center";
+    td.style.color = "var(--text-faint)";
+    td.style.fontSize = "13px";
+    td.textContent = "No programs yet. Add the first block below.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+}
+
+function updateTracker(programs, barId, statId, pillId){
+  var total = totalMinutes(programs);
+  var pct = Math.min(100, (total/1440)*100);
+  var bar = document.getElementById(barId);
+  bar.style.width = pct + "%";
+  bar.className = total > 1440 ? "over" : "";
+  document.getElementById(statId).innerHTML = "<b>"+durationLabel(total)+"</b> / 24h 00m";
+  var pill = document.getElementById(pillId);
+  if(total === 1440){
+    pill.textContent = "Full 24h Cycle ✓"; pill.className = "pill ok";
+  } else if(total > 1440){
+    pill.textContent = "Over by " + durationLabel(total-1440); pill.className = "pill warn";
+  } else {
+    pill.textContent = durationLabel(1440-total) + " remaining"; pill.className = "pill warn";
+  }
+}
+
+/* =========================================================
+   TEMPLATES VIEW
+========================================================= */
+var templateDayTabs = document.getElementById("templateDayTabs");
+var tplTableBody = document.getElementById("tplTableBody");
+
+function buildDayTabs(){
+  templateDayTabs.innerHTML = "";
+  DAYS.forEach(function(day){
+    var b = document.createElement("button");
+    b.textContent = day.slice(0,3).toUpperCase();
+    b.title = day;
+    if(day === activeTemplateDay) b.classList.add("active");
+    b.addEventListener("click", function(){
+      activeTemplateDay = day;
+      renderTemplateView();
+    });
+    templateDayTabs.appendChild(b);
+  });
+}
+
+function renderTemplateView(){
+  buildDayTabs();
+  var programs = templates[activeTemplateDay];
+  renderRundownTable(tplTableBody, programs, onTemplateChange);
+  updateTracker(programs, "tplBarFill", "tplStat", "tplPill");
+}
+
+function onTemplateChange(structural){
+  var programs = templates[activeTemplateDay];
+  if(structural){
+    renderRundownTable(tplTableBody, programs, onTemplateChange);
+  }
+  updateTracker(programs, "tplBarFill", "tplStat", "tplPill");
+}
+
+document.getElementById("tplAddBtn").addEventListener("click", function(){
+  var titleEl = document.getElementById("tplNewTitle");
+  var durEl = document.getElementById("tplNewDur");
+  var title = titleEl.value.trim() || "Untitled Program";
+  var dur = parseInt(durEl.value,10) || 30;
+  templates[activeTemplateDay].push({ id: nextId(), title: title, duration: dur });
+  titleEl.value = "";
+  durEl.value = "30";
+  renderRundownTable(tplTableBody, templates[activeTemplateDay], onTemplateChange);
+  updateTracker(templates[activeTemplateDay], "tplBarFill", "tplStat", "tplPill");
+  titleEl.focus();
+});
+document.querySelectorAll('#view-templates .quickdur button').forEach(function(b){
+  b.addEventListener("click", function(){ document.getElementById("tplNewDur").value = b.dataset.dur; });
+});
+document.getElementById("btnSaveTemplate").addEventListener("click", function(){
+  saveJSON(LS_TEMPLATES, templates);
+  flashFlag("flagTemplate");
+});
+document.getElementById("btnClearTemplate").addEventListener("click", function(){
+  if(!confirm("Clear all programs for "+activeTemplateDay+"'s template?")) return;
+  templates[activeTemplateDay] = [];
+  renderRundownTable(tplTableBody, templates[activeTemplateDay], onTemplateChange);
+  updateTracker(templates[activeTemplateDay], "tplBarFill", "tplStat", "tplPill");
+});
+
+/* =========================================================
+   SCHEDULE VIEW
+========================================================= */
+var inpDate = document.getElementById("inpDate");
+var lblDayName = document.getElementById("lblDayName");
+var tagSource = document.getElementById("tagSource");
+var schTableBody = document.getElementById("schTableBody");
+
+function cloneProgramsForDate(list){
+  // deep-clone with fresh ids so edits never mutate the master template
+  return list.map(function(p){ return { id: nextId(), title: p.title, duration: p.duration }; });
+}
+
+function loadScheduleForDate(iso){
+  activeDate = iso;
+  var dayName = weekdayNameFromISO(iso);
+  lblDayName.textContent = dayName;
+
+  var existing = schedules[iso];
+  if(existing){
+    currentSchedulePrograms = existing.programs.map(function(p){ return Object.assign({}, p); });
+    currentScheduleSource = existing.source || "custom";
+  } else {
+    currentSchedulePrograms = cloneProgramsForDate(templates[dayName] || []);
+    currentScheduleSource = "template";
+  }
+  renderScheduleView();
+}
+
+function renderScheduleView(){
+  tagSource.textContent = currentScheduleSource === "custom" ? "CUSTOM EDIT" : "FROM TEMPLATE";
+  tagSource.className = "sourcetag " + (currentScheduleSource === "custom" ? "custom" : "template");
+  renderRundownTable(schTableBody, currentSchedulePrograms, onScheduleChange);
+  updateTracker(currentSchedulePrograms, "schBarFill", "schStat", "schPill");
+}
+function onScheduleChange(structural){
+  currentScheduleSource = "custom";
+  if(structural){
+    renderRundownTable(schTableBody, currentSchedulePrograms, onScheduleChange);
+  }
+  tagSource.textContent = "CUSTOM EDIT";
+  tagSource.className = "sourcetag custom";
+  updateTracker(currentSchedulePrograms, "schBarFill", "schStat", "schPill");
+}
+
+document.getElementById("schAddBtn").addEventListener("click", function(){
+  var titleEl = document.getElementById("schNewTitle");
+  var durEl = document.getElementById("schNewDur");
+  var title = titleEl.value.trim() || "Untitled Program";
+  var dur = parseInt(durEl.value,10) || 30;
+  currentSchedulePrograms.push({ id: nextId(), title: title, duration: dur });
+  titleEl.value = "";
+  durEl.value = "30";
+  currentScheduleSource = "custom";
+  renderScheduleView();
+  titleEl.focus();
+});
+document.querySelectorAll('#view-schedule .quickdur button').forEach(function(b){
+  b.addEventListener("click", function(){ document.getElementById("schNewDur").value = b.dataset.dur; });
+});
+
+document.getElementById("btnResetTemplate").addEventListener("click", function(){
+  if(!confirm("Reset this date back to the "+weekdayNameFromISO(activeDate)+" template? Unsaved edits for this date will be lost.")) return;
+  currentSchedulePrograms = cloneProgramsForDate(templates[weekdayNameFromISO(activeDate)] || []);
+  currentScheduleSource = "template";
+  renderScheduleView();
+});
+
+document.getElementById("btnSaveSchedule").addEventListener("click", function(){
+  schedules[activeDate] = { programs: currentSchedulePrograms.map(function(p){return Object.assign({},p);}), source: currentScheduleSource };
+  saveJSON(LS_SCHEDULES, schedules);
+  flashFlag("flagSchedule");
+});
+
+inpDate.addEventListener("change", function(){
+  if(!inpDate.value) return;
+  loadScheduleForDate(inpDate.value);
+});
+
+/* =========================================================
+   PRINT
+========================================================= */
+document.getElementById("btnPrint").addEventListener("click", function(){
+  // auto-save before printing so the printed sheet always matches saved state
+  schedules[activeDate] = { programs: currentSchedulePrograms.map(function(p){return Object.assign({},p);}), source: currentScheduleSource };
+  saveJSON(LS_SCHEDULES, schedules);
+
+  document.getElementById("psChannel").textContent = settings.channel || "UNTITLED CHANNEL";
+  document.getElementById("psDay").textContent = weekdayNameFromISO(activeDate);
+  document.getElementById("psDate").textContent = formatLongDate(activeDate);
+  document.getElementById("psMD").textContent = settings.md || "\u2014";
+  document.getElementById("psHead").textContent = settings.head || "\u2014";
+
+  var body = document.getElementById("psBody");
+  body.innerHTML = "";
+  var withTimes = computeTimes(currentSchedulePrograms);
+  withTimes.forEach(function(p, idx){
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="ps-num">'+(idx+1)+'</td>'+
+      '<td class="ps-time">'+minutesToClock(p.start)+' \u2013 '+minutesToClock(p.end)+'</td>'+
+      '<td>'+escapeHTML(p.title || "Untitled Program")+'</td>'+
+      '<td class="ps-dur">'+durationLabel(p.duration)+'</td>';
+    body.appendChild(tr);
+  });
+  document.getElementById("psGenFoot").textContent =
+    "Generated by Rundown \u2014 " + new Date().toLocaleString();
+
+  window.print();
+});
+
+function escapeHTML(str){
+  var div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* =========================================================
+   LIVE CLOCK
+========================================================= */
+function tickClock(){
+  var el = document.getElementById("liveClock");
+  if(!el) return;
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2,"0");
+  var m = String(now.getMinutes()).padStart(2,"0");
+  var s = String(now.getSeconds()).padStart(2,"0");
+  el.innerHTML = "<b>"+h+":"+m+":"+s+"</b>";
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+/* =========================================================
+   INIT
+========================================================= */
+function init(){
+  renderSettingsForm();
+  renderTemplateView();
+
+  inpDate.min = todayISO();
+  inpDate.max = maxDateISO();
+  inpDate.value = todayISO();
+  loadScheduleForDate(todayISO());
+}
+init();
+
+})();
+</script>
+</body>
+</html>
