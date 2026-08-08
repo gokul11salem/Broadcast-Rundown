@@ -218,6 +218,8 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
   padding:6px 7px;border-radius:5px;font-family:var(--font-mono);font-size:13px;text-align:center;
 }
 .td-dur span{color:var(--text-faint);font-size:11px;}
+.td-own{width:90px;text-align:center;}
+.td-own input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent-2);cursor:pointer;}
 .td-actions{width:112px;text-align:right;white-space:nowrap;}
 .iconbtn{
   width:27px;height:27px;border-radius:5px;border:1px solid var(--border);
@@ -239,6 +241,24 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
   border:1px solid var(--border);background:var(--panel);color:var(--text-dim);
 }
 .quickdur button:hover{border-color:var(--accent-2);color:var(--accent-2);}
+.addrow .fown{
+  flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  padding:10px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px;
+}
+.addrow .fown input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent-2);cursor:pointer;}
+.addrow .fown label{
+  font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;
+  letter-spacing:.05em;margin:0;cursor:pointer;
+}
+
+/* ---------- Content mix readout ---------- */
+.contentmix{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);
+  margin:-10px 0 18px;display:flex;gap:16px;flex-wrap:wrap;
+}
+.contentmix b{color:var(--text);}
+.contentmix .own b{color:var(--accent-2);}
+.contentmix .acq b{color:var(--accent-3);}
 
 /* ---------- Duration tracker ---------- */
 .tracker{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
@@ -275,53 +295,80 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
 .sourcetag.template{background:var(--panel-2);color:var(--text-dim);border:1px solid var(--border);}
 .sourcetag.custom{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);}
 
+/* ---------- Station logo uploader ---------- */
+.logoRow{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+.logoPreview{
+  width:110px;height:110px;flex-shrink:0;border-radius:8px;
+  border:1.5px dashed var(--border);background:var(--panel-2);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+.logoPreview img{max-width:100%;max-height:100%;object-fit:contain;}
+.logoPreviewEmpty{font-size:11px;color:var(--text-faint);text-align:center;padding:0 10px;}
+.logoControls{flex:1;min-width:220px;}
+.logoUploadBtn{display:inline-flex;cursor:pointer;}
+
 /* =========================================================
    PRINT SHEET (built off-screen, shown only in @media print)
+   NOTE: we rely on normal document flow (display:none/block) rather
+   than visibility+absolute-position tricks, so the @page margin box
+   is always respected and content never bleeds to the paper edge.
 ========================================================= */
 #printSheet{display:none;}
 
+.ps-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:14px;
+}
+.ps-brand{display:flex;align-items:center;gap:14px;}
+.ps-logo{max-height:58px;max-width:130px;object-fit:contain;display:none;}
+.ps-channel{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.01em;}
+.ps-sub{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#333;margin-top:2px;}
+.ps-meta{text-align:right;font-family:var(--font-mono);font-size:12px;color:#222;}
+.ps-meta .day{font-family:var(--font-display);font-weight:700;font-size:20px;color:#000;}
+
+table.ps-table{width:100%;border-collapse:collapse;margin-top:4px;}
+table.ps-table thead th{
+  text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  border-bottom:2px solid #111;padding:6px 8px;color:#111;
+}
+table.ps-table td{
+  padding:6px 8px;font-size:12.5px;border-bottom:1px solid #ccc;vertical-align:top;
+}
+table.ps-table td.ps-time{font-family:var(--font-mono);white-space:nowrap;font-weight:600;width:150px;}
+table.ps-table td.ps-num{font-family:var(--font-mono);color:#666;width:28px;}
+table.ps-table td.ps-dur{font-family:var(--font-mono);color:#444;width:70px;white-space:nowrap;}
+table.ps-table td.ps-own{font-family:var(--font-mono);color:#444;width:64px;white-space:nowrap;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;}
+table.ps-table tr{break-inside:avoid;}
+
+.ps-summary{
+  display:flex;gap:40px;margin-top:20px;padding-top:12px;border-top:1px solid #999;
+}
+.ps-summary-item{display:flex;flex-direction:column;gap:3px;}
+.ps-summary-item .label{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:#555;font-family:var(--font-mono);}
+.ps-summary-item .value{font-size:15px;font-weight:700;font-family:var(--font-mono);color:#111;}
+
+.ps-footer{
+  display:flex;justify-content:space-between;margin-top:42px;page-break-inside:avoid;
+}
+.ps-sig{width:44%;text-align:center;}
+.ps-sig .line{border-top:1px solid #111;margin-bottom:6px;padding-top:8px;}
+.ps-sig .name{font-weight:700;font-size:13px;}
+.ps-sig .role{font-size:10.5px;color:#444;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+
+.ps-genfoot{margin-top:20px;font-size:9.5px;color:#999;font-family:var(--font-mono);text-align:center;}
+
 @media print{
-  @page{ size:A4; margin:14mm 14mm; }
-  html,body{background:#fff !important;}
-  body *{visibility:hidden;}
-  #printSheet, #printSheet *{visibility:visible;}
+  /* Strict, professional A4 margins on every side of the printed page */
+  @page{ size:A4 portrait; margin:15mm; }
+
+  html,body{background:#fff !important;margin:0;padding:0;}
+  .app{display:none !important;}
+
   #printSheet{
-    display:block;position:absolute;top:0;left:0;width:100%;
+    display:block !important;
     color:#111;font-family:var(--font-body);background:#fff;
+    width:100%;margin:0;padding:0;
   }
-  .app{display:none;}
-
-  .ps-header{
-    display:flex;justify-content:space-between;align-items:flex-start;
-    border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:14px;
-  }
-  .ps-channel{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:.01em;}
-  .ps-sub{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#333;margin-top:2px;}
-  .ps-meta{text-align:right;font-family:var(--font-mono);font-size:12px;color:#222;}
-  .ps-meta .day{font-family:var(--font-display);font-weight:700;font-size:20px;color:#000;}
-
-  table.ps-table{width:100%;border-collapse:collapse;margin-top:4px;}
-  table.ps-table thead th{
-    text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;
-    border-bottom:2px solid #111;padding:6px 8px;color:#111;
-  }
-  table.ps-table td{
-    padding:6px 8px;font-size:12.5px;border-bottom:1px solid #ccc;vertical-align:top;
-  }
-  table.ps-table td.ps-time{font-family:var(--font-mono);white-space:nowrap;font-weight:600;width:150px;}
-  table.ps-table td.ps-num{font-family:var(--font-mono);color:#666;width:28px;}
-  table.ps-table td.ps-dur{font-family:var(--font-mono);color:#444;width:70px;white-space:nowrap;}
-  table.ps-table tr{break-inside:avoid;}
-
-  .ps-footer{
-    display:flex;justify-content:space-between;margin-top:46px;page-break-inside:avoid;
-  }
-  .ps-sig{width:44%;text-align:center;}
-  .ps-sig .line{border-top:1px solid #111;margin-bottom:6px;padding-top:8px;}
-  .ps-sig .name{font-weight:700;font-size:13px;}
-  .ps-sig .role{font-size:10.5px;color:#444;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
-
-  .ps-genfoot{margin-top:20px;font-size:9.5px;color:#999;font-family:var(--font-mono);text-align:center;}
 }
 
 /* =========================================================
@@ -390,6 +437,27 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
       </div>
 
       <div class="panel">
+        <h3>Station Logo</h3>
+        <p class="hint">Displayed beside the channel name in the printed run order header. Upload an image or paste a direct image URL.</p>
+        <div class="logoRow">
+          <div class="logoPreview" id="logoPreview"><span class="logoPreviewEmpty">No logo</span></div>
+          <div class="logoControls">
+            <label class="btn btn-ghost logoUploadBtn">
+              Upload Image
+              <input type="file" id="inpLogoFile" accept="image/*" hidden>
+            </label>
+            <div class="field" style="margin:12px 0 0;">
+              <label for="inpLogoUrl">or Image URL</label>
+              <input type="text" id="inpLogoUrl" placeholder="https://example.com/logo.png">
+            </div>
+            <div class="btnrow">
+              <button type="button" class="btn btn-ghost btn-sm" id="btnRemoveLogo">Remove Logo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
         <h3>Signatories</h3>
         <p class="hint">These names populate the two signature blocks at the bottom of every printed run order.</p>
         <div class="grid2">
@@ -426,6 +494,7 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
           <span class="stat" id="tplStat">0h 00m / 24h</span>
           <span class="pill" id="tplPill">—</span>
         </div>
+        <div class="contentmix" id="tplContentMix"></div>
 
         <div class="rundown-wrap">
           <table class="rundown">
@@ -435,6 +504,7 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
                 <th class="td-time">Time</th>
                 <th>Program</th>
                 <th class="td-dur">Duration</th>
+                <th class="td-own">Own Production</th>
                 <th class="td-actions">Actions</th>
               </tr>
             </thead>
@@ -454,6 +524,10 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
                 <button type="button" data-dur="60">60</button>
                 <button type="button" data-dur="90">90</button>
               </div>
+            </div>
+            <div class="fown">
+              <input type="checkbox" id="tplNewOwn">
+              <label for="tplNewOwn">Own Production</label>
             </div>
             <button class="btn btn-accent" id="tplAddBtn">+ Add Program</button>
           </div>
@@ -494,6 +568,7 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
           <span class="stat" id="schStat">0h 00m / 24h</span>
           <span class="pill" id="schPill">—</span>
         </div>
+        <div class="contentmix" id="schContentMix"></div>
 
         <div class="rundown-wrap">
           <table class="rundown">
@@ -503,6 +578,7 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
                 <th class="td-time">Time</th>
                 <th>Program</th>
                 <th class="td-dur">Duration</th>
+                <th class="td-own">Own Production</th>
                 <th class="td-actions">Actions</th>
               </tr>
             </thead>
@@ -523,6 +599,10 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
                 <button type="button" data-dur="90">90</button>
               </div>
             </div>
+            <div class="fown">
+              <input type="checkbox" id="schNewOwn">
+              <label for="schNewOwn">Own Production</label>
+            </div>
             <button class="btn btn-accent" id="schAddBtn">+ Add Program</button>
           </div>
         </div>
@@ -541,9 +621,12 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
 <!-- ============ PRINT SHEET (populated by JS, only visible via @media print) ============ -->
 <div id="printSheet">
   <div class="ps-header">
-    <div>
-      <div class="ps-channel" id="psChannel">CHANNEL NAME</div>
-      <div class="ps-sub">Daily Broadcast Run Order (12:00 AM – 11:59 PM)</div>
+    <div class="ps-brand">
+      <img id="psLogo" class="ps-logo" alt="Station logo">
+      <div>
+        <div class="ps-channel" id="psChannel">CHANNEL NAME</div>
+        <div class="ps-sub">Daily Broadcast Run Order (12:00 AM – 11:59 PM)</div>
+      </div>
     </div>
     <div class="ps-meta">
       <div class="day" id="psDay">Monday</div>
@@ -557,10 +640,21 @@ table.rundown td{padding:9px 12px;vertical-align:middle;font-size:14px;}
         <th style="width:150px;">Time (Start – End)</th>
         <th>Program Title</th>
         <th class="ps-dur">Duration</th>
+        <th class="ps-own">Content</th>
       </tr>
     </thead>
     <tbody id="psBody"></tbody>
   </table>
+  <div class="ps-summary">
+    <div class="ps-summary-item">
+      <span class="label">Total Own Production</span>
+      <span class="value" id="psOwnTotal">0h 00m</span>
+    </div>
+    <div class="ps-summary-item">
+      <span class="label">Acquired / Other Content</span>
+      <span class="value" id="psAcquiredTotal">0h 00m</span>
+    </div>
+  </div>
   <div class="ps-footer">
     <div class="ps-sig">
       <div class="line"></div>
@@ -609,7 +703,8 @@ function saveJSON(key, val){
 var settings = loadJSON(LS_SETTINGS, {
   channel: "METRO TV NETWORK",
   md: "Robert Hayes",
-  head: "Alicia Moreno"
+  head: "Alicia Moreno",
+  logo: ""   // data: URL (uploaded) or remote image URL
 });
 
 var templates = loadJSON(LS_TEMPLATES, (function(){
@@ -675,6 +770,15 @@ function computeTimes(programs){
 function totalMinutes(programs){
   return programs.reduce(function(sum,p){ return sum + Number(p.duration||0); }, 0);
 }
+function computeContentSummary(programs){
+  // splits total run time into Own Production vs Acquired/Other Content
+  var own = 0, acquired = 0;
+  programs.forEach(function(p){
+    var d = Number(p.duration || 0);
+    if(p.own){ own += d; } else { acquired += d; }
+  });
+  return { own: own, acquired: acquired };
+}
 function weekdayNameFromISO(iso){
   var parts = iso.split("-").map(Number);
   var d = new Date(parts[0], parts[1]-1, parts[2]);
@@ -711,17 +815,59 @@ var inpChannel = document.getElementById("inpChannel");
 var inpMD = document.getElementById("inpMD");
 var inpHead = document.getElementById("inpHead");
 var brandChannelName = document.getElementById("brandChannelName");
+var inpLogoFile = document.getElementById("inpLogoFile");
+var inpLogoUrl = document.getElementById("inpLogoUrl");
+var logoPreview = document.getElementById("logoPreview");
+var pendingLogo = settings.logo || ""; // working value; committed to settings.logo on Save
+
+function renderLogoPreview(){
+  if(pendingLogo){
+    logoPreview.innerHTML = '<img src="'+pendingLogo+'" alt="Station logo preview">';
+  } else {
+    logoPreview.innerHTML = '<span class="logoPreviewEmpty">No logo</span>';
+  }
+}
 
 function renderSettingsForm(){
   inpChannel.value = settings.channel;
   inpMD.value = settings.md;
   inpHead.value = settings.head;
   brandChannelName.textContent = settings.channel || "RUNDOWN";
+  pendingLogo = settings.logo || "";
+  // only reflect the logo in the URL field if it's a plain URL (not an uploaded base64 image)
+  inpLogoUrl.value = (settings.logo && settings.logo.indexOf("data:") !== 0) ? settings.logo : "";
+  renderLogoPreview();
 }
+
+inpLogoFile.addEventListener("change", function(){
+  var file = inpLogoFile.files && inpLogoFile.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    pendingLogo = reader.result; // base64 data URL
+    inpLogoUrl.value = "";       // uploaded image takes precedence over a typed URL
+    renderLogoPreview();
+  };
+  reader.readAsDataURL(file);
+});
+
+inpLogoUrl.addEventListener("input", function(){
+  pendingLogo = inpLogoUrl.value.trim();
+  renderLogoPreview();
+});
+
+document.getElementById("btnRemoveLogo").addEventListener("click", function(){
+  pendingLogo = "";
+  inpLogoUrl.value = "";
+  inpLogoFile.value = "";
+  renderLogoPreview();
+});
+
 document.getElementById("btnSaveSettings").addEventListener("click", function(){
   settings.channel = inpChannel.value.trim() || "UNTITLED CHANNEL";
   settings.md = inpMD.value.trim();
   settings.head = inpHead.value.trim();
+  settings.logo = pendingLogo;
   saveJSON(LS_SETTINGS, settings);
   brandChannelName.textContent = settings.channel;
   flashFlag("flagSettings");
@@ -784,6 +930,18 @@ function renderRundownTable(tbody, programs, onChange){
     durwrap.appendChild(durSpan);
     tdDur.appendChild(durwrap);
 
+    var tdOwn = document.createElement("td");
+    tdOwn.className = "td-own";
+    var ownInput = document.createElement("input");
+    ownInput.type = "checkbox";
+    ownInput.title = "Mark as in-house / Own Production";
+    ownInput.checked = !!p.own;
+    ownInput.addEventListener("change", function(){
+      programs[idx].own = ownInput.checked;
+      onChange(false);
+    });
+    tdOwn.appendChild(ownInput);
+
     var tdActions = document.createElement("td");
     tdActions.className = "td-actions";
 
@@ -820,6 +978,7 @@ function renderRundownTable(tbody, programs, onChange){
     tr.appendChild(tdTime);
     tr.appendChild(tdTitle);
     tr.appendChild(tdDur);
+    tr.appendChild(tdOwn);
     tr.appendChild(tdActions);
     tbody.appendChild(tr);
   });
@@ -827,7 +986,7 @@ function renderRundownTable(tbody, programs, onChange){
   if(programs.length === 0){
     var tr = document.createElement("tr");
     var td = document.createElement("td");
-    td.colSpan = 5;
+    td.colSpan = 6;
     td.style.padding = "24px";
     td.style.textAlign = "center";
     td.style.color = "var(--text-faint)";
@@ -853,6 +1012,14 @@ function updateTracker(programs, barId, statId, pillId){
   } else {
     pill.textContent = durationLabel(1440-total) + " remaining"; pill.className = "pill warn";
   }
+}
+
+function updateContentMix(programs, elId){
+  var s = computeContentSummary(programs);
+  var el = document.getElementById(elId);
+  el.innerHTML =
+    '<span class="own">Own Production: <b>'+durationLabel(s.own)+'</b></span>'+
+    '<span class="acq">Acquired / Other: <b>'+durationLabel(s.acquired)+'</b></span>';
 }
 
 /* =========================================================
@@ -881,6 +1048,7 @@ function renderTemplateView(){
   var programs = templates[activeTemplateDay];
   renderRundownTable(tplTableBody, programs, onTemplateChange);
   updateTracker(programs, "tplBarFill", "tplStat", "tplPill");
+  updateContentMix(programs, "tplContentMix");
 }
 
 function onTemplateChange(structural){
@@ -889,18 +1057,22 @@ function onTemplateChange(structural){
     renderRundownTable(tplTableBody, programs, onTemplateChange);
   }
   updateTracker(programs, "tplBarFill", "tplStat", "tplPill");
+  updateContentMix(programs, "tplContentMix");
 }
 
 document.getElementById("tplAddBtn").addEventListener("click", function(){
   var titleEl = document.getElementById("tplNewTitle");
   var durEl = document.getElementById("tplNewDur");
+  var ownEl = document.getElementById("tplNewOwn");
   var title = titleEl.value.trim() || "Untitled Program";
   var dur = parseInt(durEl.value,10) || 30;
-  templates[activeTemplateDay].push({ id: nextId(), title: title, duration: dur });
+  templates[activeTemplateDay].push({ id: nextId(), title: title, duration: dur, own: ownEl.checked });
   titleEl.value = "";
   durEl.value = "30";
+  ownEl.checked = false;
   renderRundownTable(tplTableBody, templates[activeTemplateDay], onTemplateChange);
   updateTracker(templates[activeTemplateDay], "tplBarFill", "tplStat", "tplPill");
+  updateContentMix(templates[activeTemplateDay], "tplContentMix");
   titleEl.focus();
 });
 document.querySelectorAll('#view-templates .quickdur button').forEach(function(b){
@@ -915,6 +1087,7 @@ document.getElementById("btnClearTemplate").addEventListener("click", function()
   templates[activeTemplateDay] = [];
   renderRundownTable(tplTableBody, templates[activeTemplateDay], onTemplateChange);
   updateTracker(templates[activeTemplateDay], "tplBarFill", "tplStat", "tplPill");
+  updateContentMix(templates[activeTemplateDay], "tplContentMix");
 });
 
 /* =========================================================
@@ -927,7 +1100,7 @@ var schTableBody = document.getElementById("schTableBody");
 
 function cloneProgramsForDate(list){
   // deep-clone with fresh ids so edits never mutate the master template
-  return list.map(function(p){ return { id: nextId(), title: p.title, duration: p.duration }; });
+  return list.map(function(p){ return { id: nextId(), title: p.title, duration: p.duration, own: !!p.own }; });
 }
 
 function loadScheduleForDate(iso){
@@ -951,6 +1124,7 @@ function renderScheduleView(){
   tagSource.className = "sourcetag " + (currentScheduleSource === "custom" ? "custom" : "template");
   renderRundownTable(schTableBody, currentSchedulePrograms, onScheduleChange);
   updateTracker(currentSchedulePrograms, "schBarFill", "schStat", "schPill");
+  updateContentMix(currentSchedulePrograms, "schContentMix");
 }
 function onScheduleChange(structural){
   currentScheduleSource = "custom";
@@ -960,16 +1134,19 @@ function onScheduleChange(structural){
   tagSource.textContent = "CUSTOM EDIT";
   tagSource.className = "sourcetag custom";
   updateTracker(currentSchedulePrograms, "schBarFill", "schStat", "schPill");
+  updateContentMix(currentSchedulePrograms, "schContentMix");
 }
 
 document.getElementById("schAddBtn").addEventListener("click", function(){
   var titleEl = document.getElementById("schNewTitle");
   var durEl = document.getElementById("schNewDur");
+  var ownEl = document.getElementById("schNewOwn");
   var title = titleEl.value.trim() || "Untitled Program";
   var dur = parseInt(durEl.value,10) || 30;
-  currentSchedulePrograms.push({ id: nextId(), title: title, duration: dur });
+  currentSchedulePrograms.push({ id: nextId(), title: title, duration: dur, own: ownEl.checked });
   titleEl.value = "";
   durEl.value = "30";
+  ownEl.checked = false;
   currentScheduleSource = "custom";
   renderScheduleView();
   titleEl.focus();
@@ -1010,6 +1187,15 @@ document.getElementById("btnPrint").addEventListener("click", function(){
   document.getElementById("psMD").textContent = settings.md || "\u2014";
   document.getElementById("psHead").textContent = settings.head || "\u2014";
 
+  var psLogo = document.getElementById("psLogo");
+  if(settings.logo){
+    psLogo.src = settings.logo;
+    psLogo.style.display = "block";
+  } else {
+    psLogo.removeAttribute("src");
+    psLogo.style.display = "none";
+  }
+
   var body = document.getElementById("psBody");
   body.innerHTML = "";
   var withTimes = computeTimes(currentSchedulePrograms);
@@ -1019,9 +1205,16 @@ document.getElementById("btnPrint").addEventListener("click", function(){
       '<td class="ps-num">'+(idx+1)+'</td>'+
       '<td class="ps-time">'+minutesToClock(p.start)+' \u2013 '+minutesToClock(p.end)+'</td>'+
       '<td>'+escapeHTML(p.title || "Untitled Program")+'</td>'+
-      '<td class="ps-dur">'+durationLabel(p.duration)+'</td>';
+      '<td class="ps-dur">'+durationLabel(p.duration)+'</td>'+
+      '<td class="ps-own">'+(p.own ? "Own" : "Acquired")+'</td>';
     body.appendChild(tr);
   });
+
+  // Content hours calculation: Own Production vs Acquired/Other Content
+  var summary = computeContentSummary(currentSchedulePrograms);
+  document.getElementById("psOwnTotal").textContent = durationLabel(summary.own);
+  document.getElementById("psAcquiredTotal").textContent = durationLabel(summary.acquired);
+
   document.getElementById("psGenFoot").textContent =
     "Generated by Rundown \u2014 " + new Date().toLocaleString();
 
